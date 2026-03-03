@@ -1,23 +1,25 @@
-const CACHE_NAME = 'thebrief-v1';
-const ASSETS = ['/'];
+const CACHE_NAME = 'the-brief-v1';
+const urlsToCache = ['/'];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
   self.skipWaiting();
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));
-  self.clients.claim();
+self.addEventListener('fetch', event => {
+  if (event.request.url.includes('api.anthropic.com') || 
+      event.request.url.includes('generativelanguage.googleapis.com') ||
+      event.request.url.includes('fonts.googleapis.com')) {
+    return;
+  }
+  event.respondWith(
+    caches.match(event.request).then(response => response || fetch(event.request))
+  );
 });
 
-self.addEventListener('fetch', e => {
-  if (e.request.url.includes('api.anthropic.com')) return;
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).then(res => {
-      const clone = res.clone();
-      caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-      return res;
-    }))
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
   );
+  self.clients.claim();
 });
