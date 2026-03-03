@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-brief-v1';
+const CACHE_NAME = 'the-brief-v2';
 const urlsToCache = ['/'];
 
 self.addEventListener('install', event => {
@@ -9,7 +9,8 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
   if (event.request.url.includes('api.anthropic.com') || 
       event.request.url.includes('generativelanguage.googleapis.com') ||
-      event.request.url.includes('fonts.googleapis.com')) {
+      event.request.url.includes('fonts.googleapis.com') ||
+      event.request.url.includes('unpkg.com')) {
     return;
   }
   event.respondWith(
