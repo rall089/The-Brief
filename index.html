@@ -12,8 +12,8 @@
   <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%230A0A0A'/><text x='50' y='38' text-anchor='middle' fill='%23777' font-family='serif' font-size='20'>The</text><text x='50' y='72' text-anchor='middle' fill='%23E85D26' font-family='serif' font-size='34' font-weight='900'>Brief</text></svg>">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0A0A0A; overflow: hidden; }
-    #root { height: 100vh; height: 100dvh; }
+    html, body { background: #0A0A0A; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    #root { min-height: 100vh; min-height: 100dvh; }
     .animate-pulse { animation: pulse 1s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0} }
   </style>
@@ -404,7 +404,7 @@ Return ONLY valid JSON (no markdown, no backticks):
   const conceptDescs = ["Emotionally Driven", "Culturally Disruptive", "Experiential / Innovative"];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0A0A0A", color: "#E8E4DE", fontFamily: "'Instrument Sans', 'Helvetica Neue', sans-serif", position: "relative" }}>
+    <div style={{ minHeight: "100vh", minHeight: "100dvh", background: "#0A0A0A", color: "#E8E4DE", fontFamily: "'Instrument Sans', 'Helvetica Neue', sans-serif", position: "relative" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@400;700;900&display=swap');
         @keyframes pulseDot { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
@@ -434,9 +434,9 @@ Return ONLY valid JSON (no markdown, no backticks):
 
       <div style={{ position: "fixed", inset: 0, zIndex: 0, opacity: .025, pointerEvents: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
 
-      <div style={{ display: "flex", minHeight: "100vh", position: "relative", zIndex: 1 }}>
+      <div style={{ display: "flex", height: "100vh", height: "100dvh", position: "relative", zIndex: 1, overflow: "hidden" }}>
         {/* SIDEBAR */}
-        <div style={{ width: 272, borderRight: "1px solid #161616", display: "flex", flexDirection: "column", background: "rgba(10,10,10,.97)", flexShrink: 0 }}>
+        <div style={{ width: 272, borderRight: "1px solid #161616", display: "flex", flexDirection: "column", background: "rgba(10,10,10,.97)", flexShrink: 0, height: "100%", overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
           <div style={{ padding: "24px 20px 16px", borderBottom: "1px solid #161616" }}>
             <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 900, lineHeight: 1.1, marginBottom: 2 }}>
               <span style={{ color: "#777", fontWeight: 400, fontSize: 16 }}>The</span><br /><span style={{ color: "#E85D26", fontSize: 28 }}>Brief</span><span style={{ fontSize: 9, verticalAlign: "super", color: "#444", marginLeft: 3 }}>™</span>
@@ -511,7 +511,7 @@ Return ONLY valid JSON (no markdown, no backticks):
         </div>
 
         {/* MAIN */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto" }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto", height: "100%", WebkitOverflowScrolling: "touch" }}>
           {!showIdeation ? (
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <div style={{ padding: "36px 44px 20px", borderBottom: "1px solid #161616" }}>
