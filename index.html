@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Brief">
+<meta name="theme-color" content="#E85D26">
+<meta name="description" content="AI-Powered Creative Briefs for Advertising Agencies">
+<title>The Brief</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230A0A0A'/%3E%3Ctext x='256' y='200' text-anchor='middle' font-family='Georgia,serif' font-size='120' fill='%23777'%3EThe%3C/text%3E%3Ctext x='256' y='360' text-anchor='middle' font-family='Georgia,serif' font-size='160' font-weight='bold' fill='%23E85D26'%3EBrief%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body,#root{height:100%;overflow:hidden}
+body{background:#0A0A0A;color:#E8E4DE;font-family:'Instrument Sans','Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased}
+@keyframes pulseDot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+textarea:focus,input:focus{outline:none}
+textarea::placeholder,input::placeholder{color:#444}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#222;border-radius:3px}
+input,textarea,button{font-family:inherit}
+
+.btn-p{background:#E85D26;color:#fff;border:none;padding:12px 20px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:3px;-webkit-appearance:none}
+.btn-p:active{transform:scale(.97)}
+.btn-p:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-g{background:transparent;color:#E85D26;border:1px solid rgba(232,93,38,.25);padding:12px 20px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;border-radius:3px;-webkit-appearance:none}
+.btn-g:active{background:rgba(232,93,38,.1)}
+.btn-g:disabled{opacity:.3;cursor:not-allowed}
+.section-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:#E85D26;margin-bottom:8px}
+.section-text{font-size:14px;line-height:1.85;color:#BBB}
+.concept-card{border:1px solid rgba(232,93,38,.12);border-radius:6px;overflow:hidden;transition:all .3s;animation:fadeUp .5s ease forwards}
+.concept-header{padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.concept-body{padding:0 20px 20px;animation:slideRight .3s ease}
+
+/* Mobile bottom nav */
+.mobile-nav{display:flex;border-top:1px solid #161616;background:rgba(10,10,10,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.mobile-nav-item{flex:1;padding:10px 4px 8px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.mobile-nav-item.active{color:#E85D26}
+.mobile-nav-item.active::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:#E85D26;border-radius:0 0 2px 2px}
+
+/* Safe area for notch phones */
+.safe-top{padding-top:env(safe-area-inset-top,0)}
+.safe-bottom{padding-bottom:env(safe-area-inset-bottom,0)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+const ECD_SYSTEM_PROMPT = `You are the most decorated Executive Creative Director in the advertising industry. You are a creative polymath who has spent 20+ years at the absolute pinnacle of the ad world.
+
+**WIEDEN+KENNEDY (8 years):** You internalized W+K's founding philosophy: "no formula for creativity." You learned from Dan Wieden's principle of coming to work stupid — approaching every brief with beginner's mind. You helped build campaigns that infiltrated global culture. You embrace failure as a creative tool — "fail better."
+
+**72andSunny (4 years):** Optimism is a competitive advantage. You create work that doesn't chase cultural relevance but CREATES it. You mastered "world-building" — not advertising, but narrative ecosystems. "Optimism doesn't mean ignoring reality — it means engaging with it creatively."
+
+**EDELMAN (3 years):** Earned creative — ideas so shareable they earn media worth multiples of paid spend. REI #OptOutside, Dove Campaign for Real Beauty. Think "earned first."
+
+**GOODBY SILVERSTEIN & PARTNERS (5 years):** "Mass intimacy" — reaching broad audiences while feeling personal — through humor, surprise, craft, and restraint. Got Milk?, Budweiser Frogs, Cheetos Cheetle iD.
+
+**SXSW ACTIVATIONS:** Experiential doesn't mean a booth with a logo — it means immersive, multi-sensory, narrative-driven worlds people choose to spend time in.
+
+**YOUR PHILOSOPHY:** 1. CULTURE FIRST 2. BRAVE IDEAS ONLY 3. PLATFORM-NATIVE THINKING 4. EARNED BEFORE PAID 5. ENTERTAINMENT VALUE 6. HUMAN TRUTHS 7. CRAFT MATTERS 8. EXPERIENTIAL THINKING 9. SIMPLICITY IS BRAVERY 10. KILL THE EXPECTED
+
+**FORMAT: EXACTLY 3 CONCEPTS:**
+
+**[CONCEPT NAME]**
+
+**THE CULTURAL TENSION:** (2-3 sentences)
+**THE BIG IDEA:** (1-2 sentences)
+**THE EXECUTION:** (4-6 sentences)
+**THE ACTIVATION:** (2-3 sentences)
+**WHY IT WORKS:** (2-3 sentences)
+**SAMPLE HEADLINE:** One killer headline
+
+Separate with ---
+
+Make each GENUINELY different: one emotional (heart), one culturally disruptive (guts), one experiential (hands). Be specific. Be brave. No clichés.`;
+
+const SECTION_AI = `You are a senior advertising strategist from Wieden+Kennedy, 72andSunny, and GS&P. You write with sharpness and strategic depth. You despise generic marketing language. Keep responses under 150 words. Write in paragraphs. Be specific.`;
+
+const SECTIONS = [
+  {id:"project",title:"Project Overview",subtitle:"Background & Context",icon:"◈",placeholder:"Describe the project, client, and business problem...",aiP:"Write a sharp project overview:"},
+  {id:"audience",title:"Target Audience",subtitle:"Who We're Talking To",icon:"◎",placeholder:"Go beyond demographics. Who are they really?",aiP:"Define a vivid target audience profile:"},
+  {id:"message",title:"Key Message",subtitle:"Single-Minded Proposition",icon:"◆",placeholder:"What's the ONE thing?",aiP:"Craft a razor-sharp single-minded proposition:"},
+  {id:"tone",title:"Tone of Voice",subtitle:"Brand Personality",icon:"◇",placeholder:"If this brand walked into a party, who would it be?",aiP:"Define vivid tone of voice:"},
+  {id:"competitive",title:"Competitive Landscape",subtitle:"Market Whitespace",icon:"◫",placeholder:"What are competitors NOT saying?",aiP:"Analyze the competitive landscape:"},
+  {id:"deliverables",title:"Deliverables",subtitle:"Channels & Formats",icon:"◰",placeholder:"What are we making and where does it live?",aiP:"Outline a channel-native deliverables strategy:"},
+  {id:"metrics",title:"Success Metrics",subtitle:"KPIs",icon:"◲",placeholder:"How do we know if this worked?",aiP:"Define success metrics:"},
+  {id:"budget",title:"Budget & Timeline",subtitle:"Constraints",icon:"◱",placeholder:"Budget range? Key deadlines?",aiP:"Outline budget and timeline:"}
+];
+
+function getApiKey(){try{return localStorage.getItem('thebrief_api_key')||''}catch(e){return ''}}
+function setApiKey(k){try{localStorage.setItem('thebrief_api_key',k)}catch(e){}}
+
+async function callAI(sys,msg,maxTokens=1000){
+  const key=getApiKey();
+  if(!key)throw new Error('No API key');
+  const r=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:maxTokens,system:sys,messages:[{role:"user",content:msg}]})
+  });
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||'API error '+r.status)}
+  const d=await r.json();
+  return d.content?.map(b=>b.text||"").join("\n")||"No response.";
+}
+
+function PulsingDots({msg}){
+  return <div style={{display:"flex",alignItems:"center",gap:10,padding:"16px 0"}}>
+    <div style={{display:"flex",gap:4}}>{[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:"50%",background:"#E85D26",animation:`pulseDot 1.2s ease-in-out ${i*.2}s infinite`}}/>)}</div>
+    <span style={{color:"#E85D26",fontFamily:"'Space Mono',monospace",fontSize:11,letterSpacing:1}}>{msg||"Thinking..."}</span>
+  </div>
+}
+
+function parseIdeas(raw){
+  return raw.split("---").map(b=>b.trim()).filter(b=>b.length>50).map((block,i)=>{
+    const s={};
+    [{key:"name",r:/\*\*\[?([^\]*]+)\]?\*\*/m},{key:"tension",r:/\*\*THE CULTURAL TENSION:?\*\*\s*([\s\S]*?)(?=\*\*THE BIG IDEA|$)/i},{key:"bigIdea",r:/\*\*THE BIG IDEA:?\*\*\s*([\s\S]*?)(?=\*\*THE EXECUTION|$)/i},{key:"execution",r:/\*\*THE EXECUTION:?\*\*\s*([\s\S]*?)(?=\*\*THE ACTIVATION|$)/i},{key:"activation",r:/\*\*THE ACTIVATION:?\*\*\s*([\s\S]*?)(?=\*\*WHY IT WORKS|$)/i},{key:"why",r:/\*\*WHY IT WORKS:?\*\*\s*([\s\S]*?)(?=\*\*SAMPLE|$)/i},{key:"headline",r:/\*\*(?:SAMPLE )?HEADLINE:?\*\*\s*([\s\S]*?)$/i}].forEach(({key,r})=>{const m=block.match(r);s[key]=m?m[1]?.trim().replace(/\*\*/g,""):""});
+    if(!s.name)s.name=`Concept ${i+1}`;return s;
+  });
+}
+
+function KeyVisualCard({visual,onRegenerate,loading}){
+  if(visual?.error)return <div style={{marginTop:16,padding:16,background:"rgba(255,60,60,.05)",border:"1px solid rgba(255,60,60,.15)",borderRadius:4,textAlign:"center"}}><div style={{color:"#AA4444",fontSize:12,marginBottom:8}}>Couldn't generate. Try again.</div><button className="btn-g" onClick={onRegenerate} style={{fontSize:9,padding:"8px 14px"}}>↻ Retry</button></div>;
+  const c=visual.color_palette||["#E85D26","#1A1A1A","#E8E4DE","#333","#888"];
+  return <div style={{marginTop:16,animation:"fadeUp .5s ease"}}>
+    <div className="section-label" style={{marginBottom:8}}>Key Visual Concept</div>
+    <div style={{position:"relative",borderRadius:6,overflow:"hidden",aspectRatio:"16/9",background:`linear-gradient(135deg,${c[0]}22,${c[1]}44,${c[2]}22)`,border:`1px solid ${c[0]}33`,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+      <div style={{position:"absolute",inset:0,overflow:"hidden",opacity:.15}}>
+        <div style={{position:"absolute",top:"-20%",right:"-10%",width:"60%",height:"60%",borderRadius:"50%",background:`radial-gradient(circle,${c[0]},transparent)`,filter:"blur(60px)"}}/>
+        <div style={{position:"absolute",bottom:"-15%",left:"-5%",width:"50%",height:"50%",borderRadius:"50%",background:`radial-gradient(circle,${c[2]},transparent)`,filter:"blur(50px)"}}/>
+      </div>
+      <div style={{position:"absolute",inset:0,opacity:.04,backgroundImage:"linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px)",backgroundSize:"40px 40px"}}/>
+      <div style={{position:"absolute",top:12,left:14,display:"flex",gap:6,flexWrap:"wrap"}}>{(visual.mood_keywords||[]).map((k,i)=><span key={i} style={{fontFamily:"'Space Mono',monospace",fontSize:7,letterSpacing:2,textTransform:"uppercase",color:c[0],background:"rgba(0,0,0,.5)",padding:"3px 6px",borderRadius:2}}>{k}</span>)}</div>
+      <div style={{position:"relative",zIndex:2,padding:"30px 20px 20px",background:"linear-gradient(transparent,rgba(0,0,0,.7))"}}>
+        <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:900,lineHeight:1.15,color:"#fff",maxWidth:"85%",textShadow:"0 2px 20px rgba(0,0,0,.5)"}}>{visual.headline||""}</div>
+      </div>
+    </div>
+    <div style={{display:"flex",gap:0,marginTop:8,borderRadius:3,overflow:"hidden",height:28}}>{c.map((cl,i)=><div key={i} style={{flex:1,background:cl,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontFamily:"'Space Mono',monospace",fontSize:6,color:i<2?"rgba(255,255,255,.5)":"rgba(0,0,0,.35)",letterSpacing:.5}}>{cl}</span></div>)}</div>
+    <div style={{marginTop:12,padding:14,background:"rgba(20,20,20,.6)",borderRadius:4,border:"1px solid #1A1A1A"}}>
+      <div style={{fontFamily:"'Space Mono',monospace",fontSize:8,letterSpacing:2,textTransform:"uppercase",color:"#E85D26",marginBottom:6}}>Visual Direction</div>
+      <div style={{fontSize:12,lineHeight:1.7,color:"#999"}}>{visual.visual_description||""}</div>
+      {visual.art_direction&&<div style={{fontSize:12,lineHeight:1.7,color:"#777",marginTop:8,paddingTop:8,borderTop:"1px solid #1A1A1A"}}>{visual.art_direction}</div>}
+    </div>
+    <button className="btn-g" onClick={onRegenerate} disabled={loading} style={{fontSize:9,padding:"8px 14px",marginTop:10}}>{loading?"Generating...":"↻ New Key Visual"}</button>
+  </div>
+}
+
+function App(){
+  const [view,setView]=useState('brief'); // brief, ideas, settings
+  const [briefName,setBriefName]=useState('');
+  const [clientName,setClientName]=useState('');
+  const [sections,setSections]=useState(SECTIONS.reduce((a,s)=>({...a,[s.id]:""}),{}));
+  const [activeSection,setActiveSection]=useState(0);
+  const [aiLoading,setAiLoading]=useState({});
+  const [aiSugg,setAiSugg]=useState({});
+  const [parsedIdeas,setParsedIdeas]=useState([]);
+  const [ideaLoading,setIdeaLoading]=useState(false);
+  const [expandedIdea,setExpandedIdea]=useState(0);
+  const [keyVisuals,setKeyVisuals]=useState({});
+  const [visualLoading,setVisualLoading]=useState({});
+  const [apiKey,setApiKeyState]=useState(getApiKey());
+  const [apiKeyInput,setApiKeyInput]=useState(getApiKey());
+  const [pct,setPct]=useState(0);
+  const [error,setError]=useState('');
+
+  useEffect(()=>{
+    const f=Object.values(sections).filter(v=>v.trim().length>20).length;
+    setPct(Math.round((f/SECTIONS.length)*100));
+  },[sections]);
+
+  const saveKey=()=>{setApiKey(apiKeyInput);setApiKeyState(apiKeyInput);setView('brief')};
+
+  const sec=SECTIONS[activeSection];
+
+  const handleAIDraft=async(sid)=>{
+    setError('');setAiLoading(p=>({...p,[sid]:true}));
+    const s=SECTIONS.find(x=>x.id===sid);
+    const ctx=`Client: ${clientName||"?"}\nProject: ${briefName||"?"}\n\n${Object.entries(sections).filter(([,v])=>v.trim()).map(([k,v])=>`${SECTIONS.find(x=>x.id===k)?.title}: ${v}`).join("\n\n")}`;
+    try{const r=await callAI(SECTION_AI+" "+s.aiP,ctx);setAiSugg(p=>({...p,[sid]:r}))}
+    catch(e){setError(e.message);if(e.message.includes('API key')||e.message.includes('auth'))setView('settings')}
+    setAiLoading(p=>({...p,[sid]:false}));
+  };
+
+  const handleRefine=async(sid)=>{
+    if(!sections[sid]?.trim())return;
+    setError('');setAiLoading(p=>({...p,[sid]:true}));
+    const s=SECTIONS.find(x=>x.id===sid);
+    try{const r=await callAI(SECTION_AI+" Refine this section. Make it sharper.",`Section: ${s.title}\nDraft:\n${sections[sid]}\nClient: ${clientName}\nProject: ${briefName}`);setAiSugg(p=>({...p,[sid]:r}))}
+    catch(e){setError(e.message)}
+    setAiLoading(p=>({...p,[sid]:false}));
+  };
+
+  const acceptSugg=(sid)=>{setSections(p=>({...p,[sid]:aiSugg[sid]}));setAiSugg(p=>({...p,[sid]:undefined}))};
+
+  const generateIdeas=async()=>{
+    setError('');setIdeaLoading(true);setView('ideas');setParsedIdeas([]);setKeyVisuals({});setExpandedIdea(0);
+    const full=SECTIONS.map(s=>`## ${s.title}\n${sections[s.id]||"(empty)"}`).join("\n\n");
+    try{const r=await callAI(ECD_SYSTEM_PROMPT,`# CREATIVE BRIEF\nClient: ${clientName||"?"}\nProject: ${briefName||"?"}\n\n${full}`,4000);setParsedIdeas(parseIdeas(r))}
+    catch(e){setError(e.message);if(e.message.includes('API key'))setView('settings')}
+    setIdeaLoading(false);
+  };
+
+  const generateKeyVisual=async(i)=>{
+    const idea=parsedIdeas[i];if(!idea)return;
+    setVisualLoading(p=>({...p,[i]:true}));
+    try{
+      const r=await callAI(`You are a world-class art director. Given a campaign concept, return ONLY a JSON object (no markdown, no backticks, no explanation) with: "headline" (max 8 words), "visual_description" (3-4 sentences, cinematic), "art_direction" (2-3 sentences), "color_palette" (array of 5 hex codes), "mood_keywords" (array of 4 words), "format" ("landscape"), "typography" (brief description)`,
+        `Campaign: ${idea.name}\nBig Idea: ${idea.bigIdea}\nExecution: ${idea.execution}\nHeadline: ${idea.headline}\nClient: ${clientName}`);
+      const clean=r.replace(/```json|```/g,"").trim();
+      setKeyVisuals(p=>({...p,[i]:JSON.parse(clean)}));
+    }catch(e){setKeyVisuals(p=>({...p,[i]:{error:true}}))}
+    setVisualLoading(p=>({...p,[i]:false}));
+  };
+
+  const labels=["♥ HEART","✊ GUTS","✋ HANDS"];
+  const descs=["Emotionally Driven","Culturally Disruptive","Experiential"];
+
+  // SETTINGS VIEW
+  if(view==='settings')return <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:"#0A0A0A"}}>
+    <div className="safe-top" style={{padding:"20px 20px 16px",borderBottom:"1px solid #161616"}}>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <span onClick={()=>setView('brief')} style={{color:"#E85D26",cursor:"pointer",fontSize:14}}>← Back</span>
+        <span style={{fontFamily:"'Space Mono',monospace",fontSize:10,letterSpacing:2,textTransform:"uppercase",color:"#888"}}>Settings</span>
+      </div>
+    </div>
+    <div style={{flex:1,padding:24}}>
+      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,marginBottom:6}}>API Key</div>
+      <p style={{fontSize:13,color:"#666",lineHeight:1.6,marginBottom:20}}>Get your key from <span style={{color:"#E85D26"}}>console.anthropic.com</span> → API Keys. It costs fractions of a cent per use. Your key is stored locally on your device only.</p>
+      <input value={apiKeyInput} onChange={e=>setApiKeyInput(e.target.value)} placeholder="sk-ant-..." type="password" style={{width:"100%",background:"rgba(20,20,20,.6)",border:"1px solid #222",borderRadius:4,padding:16,color:"#E8E4DE",fontFamily:"'Space Mono',monospace",fontSize:13,marginBottom:16}} />
+      <button className="btn-p" onClick={saveKey} style={{width:"100%",padding:16}}>Save & Continue</button>
+      {apiKey&&<div style={{marginTop:16,padding:12,background:"rgba(232,93,38,.05)",borderRadius:4,border:"1px solid rgba(232,93,38,.15)"}}>
+        <span style={{fontFamily:"'Space Mono',monospace",fontSize:10,color:"#E85D26"}}>✓ Key saved: {apiKey.slice(0,12)}...</span>
+      </div>}
+    </div>
+  </div>;
+
+  // IDEAS VIEW
+  if(view==='ideas')return <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:"#0A0A0A"}}>
+    <div className="safe-top" style={{padding:"16px 20px",borderBottom:"1px solid #161616",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <span onClick={()=>setView('brief')} style={{color:"#E85D26",cursor:"pointer",fontFamily:"'Space Mono',monospace",fontSize:11,letterSpacing:1}}>← Brief</span>
+      <span style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700}}><span style={{color:"#777",fontSize:12,fontWeight:400}}>The </span><span style={{color:"#E85D26"}}>Brief</span></span>
+      <span onClick={()=>setView('settings')} style={{color:"#555",cursor:"pointer",fontSize:16}}>⚙</span>
+    </div>
+    <div style={{flex:1,overflowY:"auto",padding:"20px 16px 100px"}}>
+      <div className="section-label" style={{marginBottom:4}}>Creative Ideation</div>
+      <div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:900,marginBottom:4}}>Campaign Concepts</div>
+      <p style={{fontSize:12,color:"#555",marginBottom:20,lineHeight:1.5}}>for <strong style={{color:"#CCC"}}>{clientName||"your project"}</strong></p>
+
+      {ideaLoading&&<div style={{padding:"40px 0",textAlign:"center"}}><PulsingDots msg="Your ECD is building concepts..."/></div>}
+
+      {error&&<div style={{padding:14,background:"rgba(255,60,60,.05)",border:"1px solid rgba(255,60,60,.15)",borderRadius:4,marginBottom:16,fontSize:12,color:"#CC5555"}}>{error}</div>}
+
+      {parsedIdeas.map((idea,i)=><div key={i} className="concept-card" style={{marginBottom:14,animationDelay:`${i*.12}s`,opacity:0,background:expandedIdea===i?"rgba(232,93,38,.03)":"rgba(15,15,15,.8)"}}>
+        <div className="concept-header" onClick={()=>setExpandedIdea(expandedIdea===i?-1:i)}>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:"'Space Mono',monospace",fontSize:8,letterSpacing:2,color:"#E85D26",marginBottom:4}}>{labels[i]||`CONCEPT ${i+1}`}</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,lineHeight:1.2}}>{idea.name}</div>
+            <div style={{fontSize:10,color:"#555",marginTop:2}}>{descs[i]||""}</div>
+          </div>
+          <span style={{color:"#444",fontSize:16,transition:"transform .2s",transform:expandedIdea===i?"rotate(45deg)":"rotate(0)"}}>+</span>
+        </div>
+        {expandedIdea===i&&<div className="concept-body">
+          {idea.tension&&<div style={{marginBottom:16}}><div className="section-label">Cultural Tension</div><div className="section-text" style={{fontSize:13}}>{idea.tension}</div></div>}
+          {idea.bigIdea&&<div style={{marginBottom:16}}><div className="section-label">The Big Idea</div><div style={{fontSize:15,color:"#E8E4DE",fontWeight:500,lineHeight:1.7}}>{idea.bigIdea}</div></div>}
+          {idea.execution&&<div style={{marginBottom:16}}><div className="section-label">Execution</div><div className="section-text" style={{fontSize:13}}>{idea.execution}</div></div>}
+          {idea.activation&&<div style={{marginBottom:16}}><div className="section-label">Activation</div><div className="section-text" style={{fontSize:13}}>{idea.activation}</div></div>}
+          {idea.why&&<div style={{marginBottom:16}}><div className="section-label">Why It Works</div><div className="section-text" style={{fontSize:13}}>{idea.why}</div></div>}
+          {idea.headline&&<div style={{marginTop:16,padding:"14px 18px",background:"rgba(232,93,38,.06)",borderLeft:"3px solid #E85D26",borderRadius:"0 4px 4px 0"}}><div style={{fontFamily:"'Space Mono',monospace",fontSize:7,letterSpacing:2,color:"#E85D26",marginBottom:4}}>HEADLINE</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,fontStyle:"italic",lineHeight:1.4,color:"#E8E4DE"}}>{idea.headline.replace(/^["']|["']$/g,"")}</div></div>}
+
+          {!keyVisuals[i]&&!visualLoading[i]&&<div style={{marginTop:20}}><button className="btn-p" onClick={()=>generateKeyVisual(i)} style={{width:"100%",padding:14,fontSize:10}}>✦ Generate Key Visual</button></div>}
+          {visualLoading[i]&&<PulsingDots msg="Art directing..."/>}
+          {keyVisuals[i]&&!visualLoading[i]&&<KeyVisualCard visual={keyVisuals[i]} onRegenerate={()=>generateKeyVisual(i)} loading={visualLoading[i]}/>}
+        </div>}
+      </div>)}
+
+      {parsedIdeas.length>0&&!ideaLoading&&<div style={{display:"flex",gap:10,marginTop:8}}>
+        <button className="btn-p" onClick={generateIdeas} style={{flex:1,padding:14}}>✦ Regenerate</button>
+        <button className="btn-g" onClick={()=>setView('brief')} style={{flex:1,padding:14}}>← Brief</button>
+      </div>}
+    </div>
+  </div>;
+
+  // BRIEF VIEW (main)
+  return <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:"#0A0A0A"}}>
+    {/* Header */}
+    <div className="safe-top" style={{padding:"16px 20px",borderBottom:"1px solid #161616",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div>
+        <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:900,lineHeight:1.1}}>
+          <span style={{color:"#777",fontSize:12,fontWeight:400}}>The </span><span style={{color:"#E85D26"}}>Brief</span><span style={{fontSize:7,verticalAlign:"super",color:"#333",marginLeft:2}}>™</span>
+        </div>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:12}}>
+        <div style={{fontFamily:"'Space Mono',monospace",fontSize:10,color:"#E85D26"}}>{pct}%</div>
+        <span onClick={()=>setView('settings')} style={{color:"#555",cursor:"pointer",fontSize:16}}>⚙</span>
+      </div>
+    </div>
+
+    {/* Client/Project inputs */}
+    <div style={{padding:"12px 20px",borderBottom:"1px solid #161616",display:"flex",gap:10}}>
+      <input value={clientName} onChange={e=>setClientName(e.target.value)} placeholder="Client" style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid #1A1A1A",color:"#E8E4DE",fontSize:13,padding:"6px 0",fontWeight:600}}/>
+      <input value={briefName} onChange={e=>setBriefName(e.target.value)} placeholder="Project" style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid #1A1A1A",color:"#E8E4DE",fontSize:12,padding:"6px 0"}}/>
+    </div>
+
+    {/* Section tabs - horizontal scroll */}
+    <div style={{display:"flex",overflowX:"auto",borderBottom:"1px solid #161616",padding:"0 16px",gap:0,WebkitOverflowScrolling:"touch"}}>
+      {SECTIONS.map((s,i)=><div key={s.id} onClick={()=>setActiveSection(i)} style={{padding:"10px 14px",cursor:"pointer",whiteSpace:"nowrap",borderBottom:activeSection===i?"2px solid #E85D26":"2px solid transparent",transition:"all .2s"}}>
+        <span style={{fontSize:13,opacity:sections[s.id]?.trim().length>20?1:.25,marginRight:6}}>{s.icon}</span>
+        <span style={{fontSize:11,color:activeSection===i?"#E8E4DE":"#666",fontWeight:activeSection===i?600:400}}>{s.title}</span>
+      </div>)}
+    </div>
+
+    {/* Section Content */}
+    <div style={{flex:1,overflowY:"auto",padding:"20px 20px 120px"}}>
+      <div style={{marginBottom:12}}>
+        <div className="section-label">{sec.subtitle}</div>
+        <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700}}>{sec.title}</div>
+      </div>
+
+      <textarea value={sections[sec.id]} onChange={e=>setSections(p=>({...p,[sec.id]:e.target.value}))} placeholder={sec.placeholder} style={{width:"100%",minHeight:160,background:"rgba(20,20,20,.6)",border:"1px solid #1A1A1A",borderRadius:4,padding:16,color:"#E8E4DE",fontSize:14,lineHeight:1.8,resize:"vertical"}}/>
+
+      <div style={{display:"flex",gap:8,marginTop:12}}>
+        <button className="btn-g" onClick={()=>handleAIDraft(sec.id)} disabled={aiLoading[sec.id]} style={{flex:1,padding:12}}>✦ AI Draft</button>
+        <button className="btn-g" onClick={()=>handleRefine(sec.id)} disabled={aiLoading[sec.id]||!sections[sec.id]?.trim()} style={{flex:1,padding:12}}>↻ Refine</button>
+      </div>
+
+      {error&&<div style={{marginTop:12,padding:12,background:"rgba(255,60,60,.05)",border:"1px solid rgba(255,60,60,.15)",borderRadius:4,fontSize:12,color:"#CC5555"}}>{error}</div>}
+
+      {aiLoading[sec.id]&&<PulsingDots msg="Drafting..."/>}
+
+      {aiSugg[sec.id]&&!aiLoading[sec.id]&&<div style={{marginTop:14,background:"rgba(232,93,38,.03)",border:"1px solid rgba(232,93,38,.12)",borderRadius:4,padding:16,animation:"fadeUp .4s ease"}}>
+        <div className="section-label">AI Suggestion</div>
+        <div style={{fontSize:13,lineHeight:1.85,color:"#BBB"}}>{aiSugg[sec.id]}</div>
+        <div style={{display:"flex",gap:8,marginTop:14}}>
+          <button className="btn-p" onClick={()=>acceptSugg(sec.id)} style={{flex:1,fontSize:10,padding:"10px 14px"}}>Accept</button>
+          <button className="btn-g" onClick={()=>setAiSugg(p=>({...p,[sec.id]:undefined}))} style={{flex:1,fontSize:10,padding:"10px 14px"}}>Dismiss</button>
+        </div>
+      </div>}
+
+      {/* Navigation */}
+      <div style={{display:"flex",gap:8,marginTop:20}}>
+        {activeSection>0&&<button className="btn-g" onClick={()=>setActiveSection(activeSection-1)} style={{flex:1,padding:12}}>← {SECTIONS[activeSection-1]?.title}</button>}
+        {activeSection<SECTIONS.length-1&&<button className="btn-g" onClick={()=>setActiveSection(activeSection+1)} style={{flex:1,padding:12}}>{SECTIONS[activeSection+1]?.title} →</button>}
+      </div>
+    </div>
+
+    {/* Bottom Generate Bar */}
+    <div className="safe-bottom" style={{position:"fixed",bottom:0,left:0,right:0,padding:"12px 20px 16px",background:"rgba(10,10,10,.95)",borderTop:"1px solid #161616",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)"}}>
+      <button className="btn-p" disabled={pct<38||!apiKey} onClick={generateIdeas} style={{width:"100%",padding:16,fontSize:11,letterSpacing:2}}>
+        {!apiKey?"⚙ Set API Key First":pct<38?"Fill 3+ Sections to Unlock":"✦ Generate Campaign Ideas"}
+      </button>
+    </div>
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+// Register service worker
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
